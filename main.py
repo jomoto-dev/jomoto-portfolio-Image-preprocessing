@@ -108,6 +108,7 @@ async def process_image(
     # グレースケール化: カラー画像を白黒の濃淡画像に変換します
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
+    filenames = []
     output_paths = []
     download_urls = []
 
@@ -123,8 +124,9 @@ async def process_image(
                 detail="Failed to save processed image.",
             )
 
+        filenames.append(grayscale_filename)
         output_paths.append(str(grayscale_path).replace("\\", "/"))
-        download_urls.append(f"/download/{grayscale_path.name}")
+        download_urls.append(f"/download/{grayscale_filename}")
 
     if mode in {"binary", "both"}:
         # 二値化: 画像を白と黒の2色に分けます
@@ -141,8 +143,9 @@ async def process_image(
                 detail="Failed to save processed image.",
             )
 
+        filenames.append(binary_filename)
         output_paths.append(str(binary_path).replace("\\", "/"))
-        download_urls.append(f"/download/{binary_path.name}")
+        download_urls.append(f"/download/{binary_filename}")
 
     steps = [
         "uploaded",
@@ -163,9 +166,11 @@ async def process_image(
     }
 
     if mode == "both":
+        response["filenames"] = filenames
         response["output_paths"] = output_paths
         response["download_urls"] = download_urls
     else:
+        response["filename"] = filenames[0]
         response["output_path"] = output_paths[0]
         response["download_url"] = download_urls[0]
 
