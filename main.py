@@ -1,3 +1,4 @@
+from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
 
@@ -5,6 +6,7 @@ import cv2
 import numpy as np
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
+from PIL import Image, UnidentifiedImageError
 
 
 app = FastAPI(
@@ -18,7 +20,7 @@ OUTPUT_DIR = Path("output")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 # アップロードを許可する拡張子と最大ファイルサイズです
-ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif"}
 MAX_FILE_SIZE = 5 * 1024 * 1024
 ALLOWED_MODES = {"grayscale", "binary", "both"}
 ALLOWED_OUTPUT_FORMATS = {"png", "jpg"}
@@ -55,6 +57,39 @@ def get_safe_output_path(filename: str):
         )
 
     return requested_path
+
+
+def load_image_from_upload(image_bytes: bytes, extension: str):
+    """
+    アップロードされた画像をOpenCVで扱えるBGR形式に変換します。
+    GIFの場合は先頭フレームだけを読み込みます。
+    """
+
+    if extension == ".gif":
+        try:
+            with Image.open(BytesIO(image_bytes)) as gif_image:
+                gif_image.seek(0)
+                rgb_image = gif_image.convert("RGB")
+                rgb_array = np.array(rgb_image)
+                image = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2BGR)
+        except (UnidentifiedImageError, OSError, ValueError):
+            raise HTTPException(
+                status_code=400,
+                detail="Could not read the uploaded GIF image.",
+            )
+
+        return image, ["loaded_first_gif_frame"]
+
+    image_array = np.frombuffer(image_bytes, np.uint8)
+    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+
+    if image is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Could not read the uploaded image.",
+        )
+
+    return image, []
 
 
 @app.get("/")
@@ -102,7 +137,7 @@ async def process_image(
     if file_extension not in ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=400,
-            detail="Only jpg, jpeg, and png image files can be uploaded.",
+            detail="Only jpg, jpeg, png, and gif image files can be uploaded.",
         )
 
     # 画像ファイルかどうかを簡単にチェックします
@@ -128,15 +163,7 @@ async def process_image(
         )
 
     # バイト列をOpenCVで扱える形式に変換します
-    image_array = np.frombuffer(image_bytes, np.uint8)
-    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-
-    # OpenCVで画像として読み込めなかった場合
-    if image is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Could not read the uploaded image.",
-        )
+    image, image_load_steps = load_image_from_upload(image_bytes, file_extension)
 
     # グレースケール化: カラー画像を白黒の濃淡画像に変換します
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -185,6 +212,7 @@ async def process_image(
 
     steps = [
         "uploaded",
+        *image_load_steps,
         "converted_to_grayscale",
     ]
 
