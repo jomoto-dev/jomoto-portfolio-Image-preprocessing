@@ -1,3 +1,4 @@
+from enum import Enum
 from io import BytesIO
 from pathlib import Path
 from uuid import uuid4
@@ -6,7 +7,6 @@ import cv2
 import numpy as np
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
-from PIL import Image, UnidentifiedImageError
 
 
 app = FastAPI(
@@ -22,9 +22,18 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 # アップロードを許可する拡張子と最大ファイルサイズです
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif"}
 MAX_FILE_SIZE = 5 * 1024 * 1024
-ALLOWED_MODES = {"grayscale", "binary", "both"}
-ALLOWED_OUTPUT_FORMATS = {"png", "jpg"}
 PREVIEW_EXTENSIONS = {".png", ".jpg", ".jpeg"}
+
+
+class ProcessingMode(str, Enum):
+    grayscale = "grayscale"
+    binary = "binary"
+    both = "both"
+
+
+class OutputFormat(str, Enum):
+    png = "png"
+    jpg = "jpg"
 
 
 def get_safe_output_path(filename: str):
@@ -67,11 +76,18 @@ def load_image_from_upload(image_bytes: bytes, extension: str):
 
     if extension == ".gif":
         try:
+            from PIL import Image, UnidentifiedImageError
+
             with Image.open(BytesIO(image_bytes)) as gif_image:
                 gif_image.seek(0)
                 rgb_image = gif_image.convert("RGB")
                 rgb_array = np.array(rgb_image)
                 image = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2BGR)
+        except ImportError:
+            raise HTTPException(
+                status_code=500,
+                detail="Pillow is required to read GIF images.",
+            )
         except (UnidentifiedImageError, OSError, ValueError):
             raise HTTPException(
                 status_code=400,
@@ -104,8 +120,8 @@ def read_root():
 @app.post("/process-image")
 async def process_image(
     file: UploadFile = File(...),
-    mode: str = Form("binary"),
-    output_format: str = Form("png"),
+    mode: ProcessingMode = Form(ProcessingMode.binary),
+    output_format: OutputFormat = Form(OutputFormat.png),
 ):
     """
     画像をアップロードして、OpenCVで前処理するAPIです。
@@ -119,19 +135,8 @@ async def process_image(
     6. JSONで結果を返す
     """
 
-    mode = mode.strip().lower()
-    if mode not in ALLOWED_MODES:
-        raise HTTPException(
-            status_code=400,
-            detail="Mode must be grayscale, binary, or both.",
-        )
-
-    output_format = output_format.strip().lower()
-    if output_format not in ALLOWED_OUTPUT_FORMATS:
-        raise HTTPException(
-            status_code=400,
-            detail="Output format must be png or jpg.",
-        )
+    mode_value = mode.value
+    output_format_value = output_format.value
 
     file_extension = Path(file.filename or "").suffix.lower()
     if file_extension not in ALLOWED_EXTENSIONS:
@@ -173,9 +178,9 @@ async def process_image(
     download_urls = []
     preview_urls = []
 
-    if mode in {"grayscale", "both"}:
+    if mode_value in {"grayscale", "both"}:
         # uuid4を使うことで、同じ名前の画像が上書きされにくくなります
-        grayscale_filename = f"processed_grayscale_{uuid4().hex}.{output_format}"
+        grayscale_filename = f"processed_grayscale_{uuid4().hex}.{output_format_value}"
         grayscale_path = OUTPUT_DIR / grayscale_filename
         saved = cv2.imwrite(str(grayscale_path), gray_image)
 
@@ -190,12 +195,12 @@ async def process_image(
         download_urls.append(f"/download/{grayscale_filename}")
         preview_urls.append(f"/preview/{grayscale_filename}")
 
-    if mode in {"binary", "both"}:
+    if mode_value in {"binary", "both"}:
         # 二値化: 画像を白と黒の2色に分けます
         # しきい値127より大きい部分を255、そうでない部分を0にします
         _, binary_image = cv2.threshold(gray_image, 127, 255, cv2.THRESH_BINARY)
 
-        binary_filename = f"processed_binary_{uuid4().hex}.{output_format}"
+        binary_filename = f"processed_binary_{uuid4().hex}.{output_format_value}"
         binary_path = OUTPUT_DIR / binary_filename
         saved = cv2.imwrite(str(binary_path), binary_image)
 
@@ -216,7 +221,7 @@ async def process_image(
         "converted_to_grayscale",
     ]
 
-    if mode in {"binary", "both"}:
+    if mode_value in {"binary", "both"}:
         steps.append("applied_threshold")
 
     steps.append("saved_output_image")
@@ -224,12 +229,12 @@ async def process_image(
     # JSONで処理結果を返します
     response = {
         "message": "Image processed successfully",
-        "mode": mode,
-        "output_format": output_format,
+        "mode": mode_value,
+        "output_format": output_format_value,
         "steps": steps,
     }
 
-    if mode == "both":
+    if mode_value == "both":
         response["filenames"] = filenames
         response["output_paths"] = output_paths
         response["download_urls"] = download_urls
