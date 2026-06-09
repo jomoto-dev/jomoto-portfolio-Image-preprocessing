@@ -22,6 +22,39 @@ ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 MAX_FILE_SIZE = 5 * 1024 * 1024
 ALLOWED_MODES = {"grayscale", "binary", "both"}
 ALLOWED_OUTPUT_FORMATS = {"png", "jpg"}
+PREVIEW_EXTENSIONS = {".png", ".jpg", ".jpeg"}
+
+
+def get_safe_output_path(filename: str):
+    """
+    outputフォルダ内の安全なファイルパスだけを返します。
+    """
+
+    safe_filename = Path(filename).name
+    if not safe_filename:
+        raise HTTPException(
+            status_code=404,
+            detail="File not found.",
+        )
+
+    output_dir = OUTPUT_DIR.resolve()
+    requested_path = (output_dir / safe_filename).resolve()
+
+    try:
+        requested_path.relative_to(output_dir)
+    except ValueError:
+        raise HTTPException(
+            status_code=404,
+            detail="File not found.",
+        )
+
+    if not requested_path.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail="File not found.",
+        )
+
+    return requested_path
 
 
 @app.get("/")
@@ -111,6 +144,7 @@ async def process_image(
     filenames = []
     output_paths = []
     download_urls = []
+    preview_urls = []
 
     if mode in {"grayscale", "both"}:
         # uuid4を使うことで、同じ名前の画像が上書きされにくくなります
@@ -127,6 +161,7 @@ async def process_image(
         filenames.append(grayscale_filename)
         output_paths.append(str(grayscale_path).replace("\\", "/"))
         download_urls.append(f"/download/{grayscale_filename}")
+        preview_urls.append(f"/preview/{grayscale_filename}")
 
     if mode in {"binary", "both"}:
         # 二値化: 画像を白と黒の2色に分けます
@@ -146,6 +181,7 @@ async def process_image(
         filenames.append(binary_filename)
         output_paths.append(str(binary_path).replace("\\", "/"))
         download_urls.append(f"/download/{binary_filename}")
+        preview_urls.append(f"/preview/{binary_filename}")
 
     steps = [
         "uploaded",
@@ -169,10 +205,12 @@ async def process_image(
         response["filenames"] = filenames
         response["output_paths"] = output_paths
         response["download_urls"] = download_urls
+        response["preview_urls"] = preview_urls
     else:
         response["filename"] = filenames[0]
         response["output_path"] = output_paths[0]
         response["download_url"] = download_urls[0]
+        response["preview_url"] = preview_urls[0]
 
     return response
 
@@ -183,28 +221,22 @@ def download_image(filename: str):
     outputフォルダに保存された処理済み画像をダウンロードするAPIです。
     """
 
-    safe_filename = Path(filename).name
-    if not safe_filename:
+    requested_path = get_safe_output_path(filename)
+    return FileResponse(path=requested_path, filename=requested_path.name)
+
+
+@app.get("/preview/{filename}")
+def preview_image(filename: str):
+    """
+    outputフォルダに保存された処理済み画像をブラウザで表示するAPIです。
+    """
+
+    requested_path = get_safe_output_path(filename)
+
+    if requested_path.suffix.lower() not in PREVIEW_EXTENSIONS:
         raise HTTPException(
             status_code=404,
             detail="File not found.",
         )
 
-    output_dir = OUTPUT_DIR.resolve()
-    requested_path = (output_dir / safe_filename).resolve()
-
-    try:
-        requested_path.relative_to(output_dir)
-    except ValueError:
-        raise HTTPException(
-            status_code=404,
-            detail="File not found.",
-        )
-
-    if not requested_path.is_file():
-        raise HTTPException(
-            status_code=404,
-            detail="File not found.",
-        )
-
-    return FileResponse(path=requested_path, filename=safe_filename)
+    return FileResponse(path=requested_path)
