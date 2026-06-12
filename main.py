@@ -1,21 +1,29 @@
-from enum import Enum
-from html import escape
-from io import BytesIO
-from pathlib import Path
-from urllib.parse import quote
-from uuid import uuid4
+# このコードは、FastAPIで画像前処理APIを作るためのコードです。
 
-import cv2
-import numpy as np
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse
+# Step 1: 必要なライブラリを読み込む
 
+from enum import Enum # 選択肢を定義するライブラリ
+from html import escape # HTML内に表示する文字を安全に変換するライブラリ→ファイル名表示用
+from io import BytesIO　# バイトデータをファイルのように扱うライブラリ→GIF画像読み込みのため
+from pathlib import Path　# ファイルパスを扱うライブラリ
+
+from urllib.parse import quote　# URL用に文字列を変換するライブラリ
+from uuid import uuid4 # 重複しにくいIDを作るライブラリ
+
+import cv2 # 画像処理を行うOpenCVライブラリ
+import numpy as np # 数値計算や配列処理を行うライブラリ
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile # Web APIを作るFastAPI関連機能
+from fastapi.responses import FileResponse, HTMLResponse # FastAPIのレスポンス用クラス→画像ファイル返却、HTMLページ返却
+
+# Step 2: FastAPIアプリ本体を作成する
 
 app = FastAPI(
     title="Image Preprocessing API",
     description="Uploaded images are converted to grayscale and thresholded using OpenCV.",
     version="1.0.0",
 )
+
+# Step 3: アプリ全体で使う設定値を用意する
 
 # 処理後の画像を保存するフォルダ
 OUTPUT_DIR = Path("output")
@@ -26,6 +34,7 @@ ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif"}
 MAX_FILE_SIZE = 5 * 1024 * 1024
 PREVIEW_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 
+# Step 4: 処理モードと保存形式の選択肢を定義する
 
 class ProcessingMode(str, Enum):
     grayscale = "grayscale"
@@ -37,6 +46,7 @@ class OutputFormat(str, Enum):
     png = "png"
     jpg = "jpg"
 
+# Step 5: outputフォルダ内の安全なファイルパスを取得する関数を定義する
 
 def get_safe_output_path(filename: str):
     """
@@ -69,6 +79,7 @@ def get_safe_output_path(filename: str):
 
     return requested_path
 
+# Step 6: アップロードされた画像をOpenCVで扱える形に変換する関数を定義する
 
 def load_image_from_upload(image_bytes: bytes, extension: str):
     """
@@ -109,6 +120,7 @@ def load_image_from_upload(image_bytes: bytes, extension: str):
 
     return image, []
 
+# Step 7: outputフォルダ内の処理済み画像ファイル名を取得する関数を定義する
 
 def get_processed_image_filenames():
     """
@@ -131,6 +143,7 @@ def get_processed_image_filenames():
 
     return sorted(filenames)
 
+# Step 8: 動作確認用のトップページAPIを定義する
 
 @app.get("/")
 def read_root():
@@ -140,6 +153,7 @@ def read_root():
     """
     return {"message": "Image Preprocessing API is running"}
 
+# Step 9: 処理済み画像の一覧ページAPIを定義する
 
 @app.get("/files", response_class=HTMLResponse)
 def list_processed_files():
@@ -222,6 +236,7 @@ def list_processed_files():
     </html>
     """
 
+# Step 10: 画像アップロードと前処理を行うAPIを定義する
 
 @app.post("/process-image")
 async def process_image(
@@ -353,6 +368,7 @@ async def process_image(
 
     return response
 
+# Step 11: 処理済み画像をダウンロードするAPIを定義する
 
 @app.get("/download/{filename}")
 def download_image(filename: str):
@@ -363,6 +379,7 @@ def download_image(filename: str):
     requested_path = get_safe_output_path(filename)
     return FileResponse(path=requested_path, filename=requested_path.name)
 
+# Step 12: 処理済み画像をブラウザでプレビュー表示するAPIを定義する
 
 @app.get("/preview/{filename}")
 def preview_image(filename: str):
