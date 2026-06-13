@@ -1,21 +1,43 @@
 # Image Preprocessing API
 
-FastAPI と OpenCV を使った、画像前処理APIです。
+レシート画像や書類画像を、OCRなどの後続処理で扱いやすい形に変換するための画像前処理APIです。
+画像をアップロードすると、グレースケール化・二値化・保存・プレビュー・ダウンロードまでをFastAPI上で実行できます。
 
-レシート画像や書類画像をアップロードすると、API側で画像を受け取り、OpenCVで以下の処理を行います。
+## 使用技術と選定理由
 
-1. グレースケール化
-2. 二値化
-3. 処理後画像の保存
-4. JSONレスポンスの返却
+| 分類 | 技術 | 採用理由 |
+|---|---|---|
+| 言語 | Python | 画像処理・API開発のライブラリが豊富で、学習中のバックエンド技術と相性が良いため |
+| API | FastAPI | Swagger UIが自動生成され、APIの動作確認や仕様確認がしやすいため |
+| 画像処理 | OpenCV | グレースケール化・二値化などの基本的な画像前処理を実装しやすいため |
+| GIF読み込み | Pillow | GIFの先頭フレームを画像として読み込むため |
+| サーバー | Uvicorn | FastAPIアプリをローカル環境で起動するため |
 
-## 使用技術
+## API一覧
 
-- Python
-- FastAPI
-- OpenCV
-- Uvicorn
-- Swagger UI
+| メソッド | エンドポイント | 役割 |
+|---|---|---|
+| GET | `/` | APIの起動確認 |
+| POST | `/process-image` | 画像をアップロードして前処理する |
+| GET | `/preview/{filename}` | 処理済み画像をブラウザで表示する |
+| GET | `/download/{filename}` | 処理済み画像をダウンロードする |
+| GET | `/files` | 処理済み画像一覧をHTMLで表示する |
+
+## セットアップ方法
+
+### 1.リポジトリをクローン
+git clone https://github.com//image-preprocessing-api.git（後ほど修正）
+cd image-preprocessing-api
+
+### 2.仮想環境の作成・有効化
+python -m venv .venv
+.venv\Scripts\activate
+
+### 3.ライブラリのインストール
+python -m pip install -r requirements.txt
+
+### 4.アプリ起動
+python -m uvicorn main:app --reload
 
 ## 主な機能
 
