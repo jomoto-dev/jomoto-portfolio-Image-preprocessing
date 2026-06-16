@@ -24,7 +24,7 @@ DB・認証・フロントエンドはあえて追加せず、画像アップロ
 
 ## デモイメージ
 
-<img width="1280" height="720" alt="Image" src="https://github.com/user-attachments/assets/c32dc8cc-8911-42d4-af7c-608727fae090" />
+<img width="1280" height="720" alt="Image" src="https://github.com/user-attachments/assets/c0fc3fde-6696-440a-b6cf-35704420e953" />
 
 <table>
   <tr>
