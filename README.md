@@ -22,7 +22,6 @@
 | POST | `/process-image` | 画像をアップロードして前処理する |
 | GET | `/preview/{filename}` | 処理済み画像をブラウザで表示する |
 | GET | `/download/{filename}` | 処理済み画像をダウンロードする |
-| GET | `/files` | 処理済み画像一覧をHTMLで表示する |
 
 ## セットアップ方法
 
@@ -162,12 +161,6 @@ GET /download/processed_binary_xxxxx.png
 
 `/preview/{filename}` はブラウザで画像を表示するためのAPIです。
 `/download/{filename}` は画像をファイルとしてダウンロードするためのAPIです。
-
-## 処理済み画像の一覧ページ
-
-`GET /files` で、`output` フォルダ内の処理済み画像をHTMLで一覧表示できます。
-各ファイルのファイル名コピー、プレビュー、ダウンロードができます。
-`/preview/{filename}` や `/download/{filename}` に使うファイル名を確認しやすくするための補助ページです。
 
 ## フォルダ構成
 

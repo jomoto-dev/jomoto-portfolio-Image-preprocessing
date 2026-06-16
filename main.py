@@ -1,16 +1,14 @@
 # 必要なライブラリを読み込む
 
 from enum import Enum
-from html import escape
 from io import BytesIO
 from pathlib import Path
-from urllib.parse import quote
 from uuid import uuid4
 
 import cv2  # 画像の読み込み・加工・保存に使う
 import numpy as np  # 画像データを配列として扱うために使う
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile  # APIの作成、入力受付、エラー返却に使う
-from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.responses import FileResponse
 from pydantic import BaseModel  # レスポンスの形をクラスとして定義するために使う
 
 
@@ -135,29 +133,7 @@ def load_image_from_upload(image_bytes: bytes, extension: str):
     return image, []
 
 
-def get_processed_image_filenames():
-    """
-    outputフォルダ内の処理済み画像ファイル名だけを返します。
-    """
-
-    filenames = []
-    output_dir = OUTPUT_DIR.resolve()
-
-    for path in output_dir.iterdir():  # outputフォルダ内のファイルを1つずつ確認する
-        if not path.is_file() or path.suffix.lower() not in PREVIEW_EXTENSIONS:
-            continue
-
-        try:
-            get_safe_output_path(path.name)  # 一覧に出す前に安全なパスか確認する
-        except HTTPException:
-            continue
-
-        filenames.append(path.name)
-
-    return sorted(filenames)
-
-
-# 動作確認と処理済み画像一覧のAPIを定義する
+# 動作確認用のAPIを定義する
 
 @app.get("/")  # APIが起動しているか確認するための入口
 def read_root():
@@ -166,88 +142,6 @@ def read_root():
     ブラウザで http://127.0.0.1:8000/ にアクセスすると確認できます。
     """
     return {"message": "Image Preprocessing API is running"}
-
-
-@app.get("/files", response_class=HTMLResponse)  # 処理済み画像の一覧をHTMLで返す
-def list_processed_files():
-    """
-    outputフォルダ内の処理済み画像を一覧表示するページです。
-    """
-
-    filenames = get_processed_image_filenames()  # 一覧表示できる画像ファイル名だけを取得する
-
-    if filenames:
-        file_items = []
-        for filename in filenames:
-            escaped_filename = escape(filename, quote=True)  # HTML内で安全に表示できる文字列にする
-            encoded_filename = quote(filename)  # URLに使える形へ変換する
-            file_items.append(
-                f"""
-                <li class="file-item">
-                    <span class="filename">{escaped_filename}</span>
-                    <button type="button" data-filename="{escaped_filename}">Copy filename</button>
-                    <a href="/preview/{encoded_filename}" target="_blank">Preview</a>
-                    <a href="/download/{encoded_filename}">Download</a>
-                </li>
-                """
-            )
-
-        files_html = f"<ul>{''.join(file_items)}</ul>"
-    else:
-        files_html = "<p>処理済みファイルはまだありません。</p>"
-
-    return f"""
-    <!DOCTYPE html>
-    <html lang="ja">
-    <head>
-        <meta charset="utf-8">
-        <title>Processed Files</title>
-        <style>
-            body {{
-                font-family: Arial, sans-serif;
-                margin: 32px;
-                color: #222;
-            }}
-            h1 {{
-                font-size: 24px;
-            }}
-            ul {{
-                list-style: none;
-                padding: 0;
-            }}
-            .file-item {{
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                padding: 10px 0;
-                border-bottom: 1px solid #ddd;
-            }}
-            .filename {{
-                min-width: 320px;
-                font-family: Consolas, monospace;
-            }}
-            button, a {{
-                font-size: 14px;
-            }}
-        </style>
-    </head>
-    <body>
-        <h1>Processed Files</h1>
-        {files_html}
-        <script>
-            document.querySelectorAll("button[data-filename]").forEach((button) => {{
-                button.addEventListener("click", async () => {{
-                    await navigator.clipboard.writeText(button.dataset.filename);
-                    button.textContent = "Copied";
-                    setTimeout(() => {{
-                        button.textContent = "Copy filename";
-                    }}, 1200);
-                }});
-            }});
-        </script>
-    </body>
-    </html>
-    """
 
 
 # 画像を受け取り、前処理して保存するAPIを定義する
