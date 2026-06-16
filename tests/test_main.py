@@ -42,10 +42,15 @@ def test_process_image_binary_returns_file_info(client):
     assert data["message"] == "Image processed successfully"
     assert data["mode"] == "binary"
     assert data["output_format"] == "png"
-    assert data["filename"]
-    assert data["output_path"]
-    assert data["preview_url"]
-    assert data["download_url"]
+    assert "results" in data
+    assert len(data["results"]) == 1
+
+    result = data["results"][0]
+    assert result["type"] == "binary"
+    assert result["filename"]
+    assert result["output_path"]
+    assert result["preview_url"]
+    assert result["download_url"]
 
 
 def test_process_image_both_returns_two_files(client):
@@ -59,10 +64,19 @@ def test_process_image_both_returns_two_files(client):
     data = response.json()
 
     assert response.status_code == 200
-    assert len(data["filenames"]) == 2
-    assert len(data["output_paths"]) == 2
-    assert len(data["preview_urls"]) == 2
-    assert len(data["download_urls"]) == 2
+    assert data["mode"] == "both"
+    assert "results" in data
+    assert len(data["results"]) == 2
+
+    result_types = {result["type"] for result in data["results"]}
+    assert "grayscale" in result_types
+    assert "binary" in result_types
+
+    for result in data["results"]:
+        assert result["filename"]
+        assert result["output_path"]
+        assert result["preview_url"]
+        assert result["download_url"]
 
 
 def test_process_image_rejects_unsupported_file_extension(client):

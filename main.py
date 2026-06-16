@@ -287,10 +287,7 @@ async def process_image(
 
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # 画像を白黒の濃淡画像に変換する
 
-    filenames = []
-    output_paths = []
-    download_urls = []
-    preview_urls = []
+    results = []
 
     if mode_value in {"grayscale", "both"}:
         grayscale_filename = f"processed_grayscale_{uuid4().hex}.{output_format_value}"
@@ -303,10 +300,15 @@ async def process_image(
                 detail="Failed to save processed image.",
             )
 
-        filenames.append(grayscale_filename)
-        output_paths.append(str(grayscale_path).replace("\\", "/"))
-        download_urls.append(f"/download/{grayscale_filename}")
-        preview_urls.append(f"/preview/{grayscale_filename}")
+        results.append(
+            {
+                "type": "grayscale",
+                "filename": grayscale_filename,
+                "output_path": str(grayscale_path).replace("\\", "/"),
+                "download_url": f"/download/{grayscale_filename}",
+                "preview_url": f"/preview/{grayscale_filename}",
+            }
+        )
 
     if mode_value in {"binary", "both"}:
         _, binary_image = cv2.threshold(gray_image, 127, 255, cv2.THRESH_BINARY)  # 画像を白と黒の2色に分ける
@@ -321,10 +323,15 @@ async def process_image(
                 detail="Failed to save processed image.",
             )
 
-        filenames.append(binary_filename)
-        output_paths.append(str(binary_path).replace("\\", "/"))
-        download_urls.append(f"/download/{binary_filename}")
-        preview_urls.append(f"/preview/{binary_filename}")
+        results.append(
+            {
+                "type": "binary",
+                "filename": binary_filename,
+                "output_path": str(binary_path).replace("\\", "/"),
+                "download_url": f"/download/{binary_filename}",
+                "preview_url": f"/preview/{binary_filename}",
+            }
+        )
 
     steps = [
         "uploaded",
@@ -342,18 +349,8 @@ async def process_image(
         "mode": mode_value,
         "output_format": output_format_value,
         "steps": steps,
+        "results": results,
     }
-
-    if mode_value == "both":
-        response["filenames"] = filenames
-        response["output_paths"] = output_paths
-        response["download_urls"] = download_urls
-        response["preview_urls"] = preview_urls
-    else:
-        response["filename"] = filenames[0]
-        response["output_path"] = output_paths[0]
-        response["download_url"] = download_urls[0]
-        response["preview_url"] = preview_urls[0]
 
     return response
 

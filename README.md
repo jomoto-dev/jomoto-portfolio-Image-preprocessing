@@ -87,31 +87,50 @@ GIFをアップロードした場合も、出力は `png` または `jpg` で保
 
 ## レスポンスに含まれる情報
 
-`/process-image` のレスポンスには、処理結果に加えて以下の情報が含まれます。
+`/process-image` のレスポンスでは、処理結果を常に `results` 配列で返します。
+`mode` が `grayscale` または `binary` の場合、`results` は1件です。
+`mode` が `both` の場合、`results` は2件です。
 
-1ファイル保存時（`mode` が `grayscale` または `binary`）:
+`results` の各要素には以下の情報が含まれます。
 
 | フィールド | 説明 |
 |---|---|
+| `type` | `grayscale` または `binary` |
 | `filename` | 保存されたファイル名 |
 | `output_path` | 保存先のパス |
 | `preview_url` | ブラウザ表示用URL |
 | `download_url` | ダウンロード用URL |
 
-複数ファイル保存時（`mode` が `both`）:
+レスポンス例:
 
-| フィールド | 説明 |
-|---|---|
-| `filenames` | 保存されたファイル名のリスト |
-| `output_paths` | 保存先パスのリスト |
-| `preview_urls` | ブラウザ表示用URLのリスト |
-| `download_urls` | ダウンロード用URLのリスト |
+```json
+{
+  "message": "Image processed successfully",
+  "mode": "binary",
+  "output_format": "png",
+  "steps": [
+    "uploaded",
+    "converted_to_grayscale",
+    "applied_threshold",
+    "saved_output_image"
+  ],
+  "results": [
+    {
+      "type": "binary",
+      "filename": "processed_binary_xxxxx.png",
+      "output_path": "output/processed_binary_xxxxx.png",
+      "preview_url": "/preview/processed_binary_xxxxx.png",
+      "download_url": "/download/processed_binary_xxxxx.png"
+    }
+  ]
+}
+```
 
 ## 処理済み画像のプレビュー
 
 処理済み画像は、`GET /preview/{filename}` でブラウザ上に表示できます。
 
-レスポンスの `preview_url`（または `preview_urls`）を使うと、処理済み画像をそのままブラウザで確認できます。
+レスポンスの `results` 内にある `preview_url` を使うと、処理済み画像をそのままブラウザで確認できます。
 
 例:
 
@@ -126,7 +145,7 @@ GET /preview/processed_binary_xxxxx.png
 
 処理済み画像は、`GET /download/{filename}` でダウンロードできます。
 
-レスポンスの `filename`（または `filenames`）をそのまま `/download/{filename}` に指定して使えます。
+レスポンスの `results` 内にある `filename` をそのまま `/download/{filename}` に指定して使えます。
 
 例:
 
@@ -134,7 +153,7 @@ GET /preview/processed_binary_xxxxx.png
 GET /download/processed_binary_xxxxx.png
 ```
 
-`/process-image` のレスポンスには `download_url` も含まれるため、そのURLから直接ダウンロードすることもできます。
+`/process-image` の `results` 内には `download_url` も含まれるため、そのURLから直接ダウンロードすることもできます。
 
 ダウンロードできるのは `output` フォルダ内のファイルのみです。
 存在しないファイル名や、`output` フォルダ外にアクセスしようとする指定は404エラーになります。
