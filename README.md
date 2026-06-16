@@ -30,7 +30,7 @@ DB・認証・フロントエンドはあえて追加せず、画像アップロ
   <tr>
     <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/fe71f917-0c67-4d4a-80ff-3fd466cc12b0" /></td>
     <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/5466d266-e97b-4a56-b164-308c412507f4" /></td>
-    <td><img width="427" alt="Image" src="https://github.com/user-attachments/assets/909b7b48-0ac2-460b-bf91-a77e6356e943" /></td>
+    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/909b7b48-0ac2-460b-bf91-a77e6356e943" /></td>
   </tr>
 </table>
 
