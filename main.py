@@ -1,21 +1,19 @@
-# このコードは、FastAPIで画像前処理APIを作るためのコードです。
+# 必要なライブラリを読み込む
 
-# Step 1: 必要なライブラリを読み込む
+from enum import Enum
+from html import escape
+from io import BytesIO
+from pathlib import Path
+from urllib.parse import quote
+from uuid import uuid4
 
-from enum import Enum # 選択肢を定義するライブラリ
-from html import escape # HTML内に表示する文字を安全に変換するライブラリ→ファイル名表示用
-from io import BytesIO　# バイトデータをファイルのように扱うライブラリ→GIF画像読み込みのため
-from pathlib import Path　# ファイルパスを扱うライブラリ
+import cv2  # 画像の読み込み・加工・保存に使う
+import numpy as np  # 画像データを配列として扱うために使う
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse, HTMLResponse
 
-from urllib.parse import quote　# URL用に文字列を変換するライブラリ
-from uuid import uuid4 # 重複しにくいIDを作るライブラリ
 
-import cv2 # 画像処理を行うOpenCVライブラリ
-import numpy as np # 数値計算や配列処理を行うライブラリ
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile # Web APIを作るFastAPI関連機能
-from fastapi.responses import FileResponse, HTMLResponse # FastAPIのレスポンス用クラス→画像ファイル返却、HTMLページ返却
-
-# Step 2: FastAPIアプリ本体を作成する
+# アプリの基本設定と共通の値を用意する
 
 app = FastAPI(
     title="Image Preprocessing API",
@@ -23,18 +21,15 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Step 3: アプリ全体で使う設定値を用意する
-
-# 処理後の画像を保存するフォルダ
 OUTPUT_DIR = Path("output")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
-# アップロードを許可する拡張子と最大ファイルサイズです
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif"}
-MAX_FILE_SIZE = 5 * 1024 * 1024
+MAX_FILE_SIZE = 5 * 1024 * 1024  # アップロードできる最大サイズを5MBにする
 PREVIEW_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 
-# Step 4: 処理モードと保存形式の選択肢を定義する
+
+# APIで選べる処理方法と保存形式を定義する
 
 class ProcessingMode(str, Enum):
     grayscale = "grayscale"
@@ -46,7 +41,8 @@ class OutputFormat(str, Enum):
     png = "png"
     jpg = "jpg"
 
-# Step 5: outputフォルダ内の安全なファイルパスを取得する関数を定義する
+
+# outputフォルダ内のファイルを安全に扱う関数を定義する
 
 def get_safe_output_path(filename: str):
     """
@@ -64,7 +60,7 @@ def get_safe_output_path(filename: str):
     requested_path = (output_dir / safe_filename).resolve()
 
     try:
-        requested_path.relative_to(output_dir)
+        requested_path.relative_to(output_dir)  # outputフォルダの外を指定できないようにする
     except ValueError:
         raise HTTPException(
             status_code=404,
@@ -79,7 +75,8 @@ def get_safe_output_path(filename: str):
 
     return requested_path
 
-# Step 6: アップロードされた画像をOpenCVで扱える形に変換する関数を定義する
+
+# アップロードされた画像をOpenCVで扱える形に変換する
 
 def load_image_from_upload(image_bytes: bytes, extension: str):
     """
@@ -95,7 +92,7 @@ def load_image_from_upload(image_bytes: bytes, extension: str):
                 gif_image.seek(0)
                 rgb_image = gif_image.convert("RGB")
                 rgb_array = np.array(rgb_image)
-                image = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2BGR)
+                image = cv2.cvtColor(rgb_array, cv2.COLOR_RGB2BGR)  # PillowのRGB画像をOpenCV用のBGR画像に変換する
         except ImportError:
             raise HTTPException(
                 status_code=500,
@@ -110,7 +107,7 @@ def load_image_from_upload(image_bytes: bytes, extension: str):
         return image, ["loaded_first_gif_frame"]
 
     image_array = np.frombuffer(image_bytes, np.uint8)
-    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)  # バイト列をOpenCVの画像データに変換する
 
     if image is None:
         raise HTTPException(
@@ -120,7 +117,6 @@ def load_image_from_upload(image_bytes: bytes, extension: str):
 
     return image, []
 
-# Step 7: outputフォルダ内の処理済み画像ファイル名を取得する関数を定義する
 
 def get_processed_image_filenames():
     """
@@ -143,7 +139,8 @@ def get_processed_image_filenames():
 
     return sorted(filenames)
 
-# Step 8: 動作確認用のトップページAPIを定義する
+
+# 動作確認と処理済み画像一覧のAPIを定義する
 
 @app.get("/")
 def read_root():
@@ -153,7 +150,6 @@ def read_root():
     """
     return {"message": "Image Preprocessing API is running"}
 
-# Step 9: 処理済み画像の一覧ページAPIを定義する
 
 @app.get("/files", response_class=HTMLResponse)
 def list_processed_files():
@@ -236,7 +232,8 @@ def list_processed_files():
     </html>
     """
 
-# Step 10: 画像アップロードと前処理を行うAPIを定義する
+
+# 画像を受け取り、前処理して保存するAPIを定義する
 
 @app.post("/process-image")
 async def process_image(
@@ -266,14 +263,12 @@ async def process_image(
             detail="Only jpg, jpeg, png, and gif image files can be uploaded.",
         )
 
-    # 画像ファイルかどうかを簡単にチェックします
     if file.content_type is None or not file.content_type.startswith("image/"):
         raise HTTPException(
             status_code=400,
             detail="Please upload an image file.",
         )
 
-    # アップロードされた画像ファイルをバイト列として読み込みます
     image_bytes = await file.read()
 
     if not image_bytes:
@@ -288,11 +283,9 @@ async def process_image(
             detail="The uploaded file is too large. Please upload an image that is 5MB or smaller.",
         )
 
-    # バイト列をOpenCVで扱える形式に変換します
     image, image_load_steps = load_image_from_upload(image_bytes, file_extension)
 
-    # グレースケール化: カラー画像を白黒の濃淡画像に変換します
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # 画像を白黒の濃淡画像に変換する
 
     filenames = []
     output_paths = []
@@ -300,7 +293,6 @@ async def process_image(
     preview_urls = []
 
     if mode_value in {"grayscale", "both"}:
-        # uuid4を使うことで、同じ名前の画像が上書きされにくくなります
         grayscale_filename = f"processed_grayscale_{uuid4().hex}.{output_format_value}"
         grayscale_path = OUTPUT_DIR / grayscale_filename
         saved = cv2.imwrite(str(grayscale_path), gray_image)
@@ -317,9 +309,7 @@ async def process_image(
         preview_urls.append(f"/preview/{grayscale_filename}")
 
     if mode_value in {"binary", "both"}:
-        # 二値化: 画像を白と黒の2色に分けます
-        # しきい値127より大きい部分を255、そうでない部分を0にします
-        _, binary_image = cv2.threshold(gray_image, 127, 255, cv2.THRESH_BINARY)
+        _, binary_image = cv2.threshold(gray_image, 127, 255, cv2.THRESH_BINARY)  # 画像を白と黒の2色に分ける
 
         binary_filename = f"processed_binary_{uuid4().hex}.{output_format_value}"
         binary_path = OUTPUT_DIR / binary_filename
@@ -347,7 +337,6 @@ async def process_image(
 
     steps.append("saved_output_image")
 
-    # JSONで処理結果を返します
     response = {
         "message": "Image processed successfully",
         "mode": mode_value,
@@ -368,7 +357,8 @@ async def process_image(
 
     return response
 
-# Step 11: 処理済み画像をダウンロードするAPIを定義する
+
+# 保存済み画像をダウンロードまたはプレビューするAPIを定義する
 
 @app.get("/download/{filename}")
 def download_image(filename: str):
@@ -379,7 +369,6 @@ def download_image(filename: str):
     requested_path = get_safe_output_path(filename)
     return FileResponse(path=requested_path, filename=requested_path.name)
 
-# Step 12: 処理済み画像をブラウザでプレビュー表示するAPIを定義する
 
 @app.get("/preview/{filename}")
 def preview_image(filename: str):
