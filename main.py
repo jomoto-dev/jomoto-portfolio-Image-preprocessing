@@ -9,8 +9,9 @@ from uuid import uuid4
 
 import cv2  # 画像の読み込み・加工・保存に使う
 import numpy as np  # 画像データを配列として扱うために使う
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile  # APIの作成、入力受付、エラー返却に使う
 from fastapi.responses import FileResponse, HTMLResponse
+from pydantic import BaseModel  # レスポンスの形をクラスとして定義するために使う
 
 
 # アプリの基本設定と共通の値を用意する
@@ -29,17 +30,33 @@ MAX_FILE_SIZE = 5 * 1024 * 1024  # アップロードできる最大サイズを
 PREVIEW_EXTENSIONS = {".png", ".jpg", ".jpeg"}
 
 
-# APIで選べる処理方法と保存形式を定義する
+# APIで選べる値とレスポンスの形を定義する
 
-class ProcessingMode(str, Enum):
+class ProcessingMode(str, Enum):  # 画像にどの前処理を行うかを選ぶ
     grayscale = "grayscale"
     binary = "binary"
     both = "both"
 
 
-class OutputFormat(str, Enum):
+class OutputFormat(str, Enum):  # 処理後の画像をどの形式で保存するかを選ぶ
     png = "png"
     jpg = "jpg"
+
+
+class ProcessedImageResult(BaseModel):  # 保存された画像1件分のレスポンス形式を定義する
+    type: str
+    filename: str
+    output_path: str
+    download_url: str
+    preview_url: str
+
+
+class ProcessImageResponse(BaseModel):  # /process-image の成功レスポンス全体を定義する
+    message: str
+    mode: ProcessingMode
+    output_format: OutputFormat
+    steps: list[str]
+    results: list[ProcessedImageResult]
 
 
 # outputフォルダ内のファイルを安全に扱う関数を定義する
@@ -126,12 +143,12 @@ def get_processed_image_filenames():
     filenames = []
     output_dir = OUTPUT_DIR.resolve()
 
-    for path in output_dir.iterdir():
+    for path in output_dir.iterdir():  # outputフォルダ内のファイルを1つずつ確認する
         if not path.is_file() or path.suffix.lower() not in PREVIEW_EXTENSIONS:
             continue
 
         try:
-            get_safe_output_path(path.name)
+            get_safe_output_path(path.name)  # 一覧に出す前に安全なパスか確認する
         except HTTPException:
             continue
 
@@ -142,7 +159,7 @@ def get_processed_image_filenames():
 
 # 動作確認と処理済み画像一覧のAPIを定義する
 
-@app.get("/")
+@app.get("/")  # APIが起動しているか確認するための入口
 def read_root():
     """
     動作確認用の簡単なエンドポイントです。
@@ -151,19 +168,19 @@ def read_root():
     return {"message": "Image Preprocessing API is running"}
 
 
-@app.get("/files", response_class=HTMLResponse)
+@app.get("/files", response_class=HTMLResponse)  # 処理済み画像の一覧をHTMLで返す
 def list_processed_files():
     """
     outputフォルダ内の処理済み画像を一覧表示するページです。
     """
 
-    filenames = get_processed_image_filenames()
+    filenames = get_processed_image_filenames()  # 一覧表示できる画像ファイル名だけを取得する
 
     if filenames:
         file_items = []
         for filename in filenames:
-            escaped_filename = escape(filename, quote=True)
-            encoded_filename = quote(filename)
+            escaped_filename = escape(filename, quote=True)  # HTML内で安全に表示できる文字列にする
+            encoded_filename = quote(filename)  # URLに使える形へ変換する
             file_items.append(
                 f"""
                 <li class="file-item">
@@ -235,7 +252,7 @@ def list_processed_files():
 
 # 画像を受け取り、前処理して保存するAPIを定義する
 
-@app.post("/process-image")
+@app.post("/process-image", response_model=ProcessImageResponse)  # 成功時のレスポンス形式をSwagger UIに表示する
 async def process_image(
     file: UploadFile = File(...),
     mode: ProcessingMode = Form(ProcessingMode.binary),
@@ -256,7 +273,7 @@ async def process_image(
     mode_value = mode.value
     output_format_value = output_format.value
 
-    file_extension = Path(file.filename or "").suffix.lower()
+    file_extension = Path(file.filename or "").suffix.lower()  # アップロードされたファイルの拡張子を確認する
     if file_extension not in ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=400,
@@ -269,7 +286,7 @@ async def process_image(
             detail="Please upload an image file.",
         )
 
-    image_bytes = await file.read()
+    image_bytes = await file.read()  # アップロードされた画像をバイト列として読み込む
 
     if not image_bytes:
         raise HTTPException(
@@ -292,7 +309,7 @@ async def process_image(
     if mode_value in {"grayscale", "both"}:
         grayscale_filename = f"processed_grayscale_{uuid4().hex}.{output_format_value}"
         grayscale_path = OUTPUT_DIR / grayscale_filename
-        saved = cv2.imwrite(str(grayscale_path), gray_image)
+        saved = cv2.imwrite(str(grayscale_path), gray_image)  # グレースケール画像をoutputフォルダへ保存する
 
         if not saved:
             raise HTTPException(
@@ -315,7 +332,7 @@ async def process_image(
 
         binary_filename = f"processed_binary_{uuid4().hex}.{output_format_value}"
         binary_path = OUTPUT_DIR / binary_filename
-        saved = cv2.imwrite(str(binary_path), binary_image)
+        saved = cv2.imwrite(str(binary_path), binary_image)  # 二値化した画像をoutputフォルダへ保存する
 
         if not saved:
             raise HTTPException(
@@ -344,7 +361,7 @@ async def process_image(
 
     steps.append("saved_output_image")
 
-    response = {
+    response = {  # API利用者へ返す結果を1つの辞書にまとめる
         "message": "Image processed successfully",
         "mode": mode_value,
         "output_format": output_format_value,
@@ -357,7 +374,7 @@ async def process_image(
 
 # 保存済み画像をダウンロードまたはプレビューするAPIを定義する
 
-@app.get("/download/{filename}")
+@app.get("/download/{filename}")  # 保存済み画像をファイルとして返す
 def download_image(filename: str):
     """
     outputフォルダに保存された処理済み画像をダウンロードするAPIです。
@@ -367,7 +384,7 @@ def download_image(filename: str):
     return FileResponse(path=requested_path, filename=requested_path.name)
 
 
-@app.get("/preview/{filename}")
+@app.get("/preview/{filename}")  # 保存済み画像をブラウザ表示用に返す
 def preview_image(filename: str):
     """
     outputフォルダに保存された処理済み画像をブラウザで表示するAPIです。

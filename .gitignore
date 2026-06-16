@@ -6,3 +6,6 @@ output/*
 !output/.gitkeep
 
 .env
+
+tests/.tmp_output/
+.pytest_cache/

@@ -9,6 +9,7 @@
 |---|---|---|
 | 言語 | Python | 画像処理・API開発のライブラリが豊富で、学習中のバックエンド技術と相性が良いため |
 | API | FastAPI | Swagger UIが自動生成され、APIの動作確認や仕様確認がしやすいため |
+| レスポンス定義 | Pydantic | APIレスポンスの型を定義し、Swagger UI上でレスポンス仕様を分かりやすく表示するため |
 | 画像処理 | OpenCV | グレースケール化・二値化などの基本的な画像前処理を実装しやすいため |
 | GIF読み込み | Pillow | GIFの先頭フレームを画像として読み込むため |
 | サーバー | Uvicorn | FastAPIアプリをローカル環境で起動するため |
@@ -54,6 +55,7 @@ python -m pytest
 - OpenCVによる二値化
 - outputフォルダへの画像保存
 - JSONレスポンス返却
+- Pydantic response model によるレスポンス仕様の明確化
 - Swagger UIでの動作確認
 
 ## アップロードできる画像
