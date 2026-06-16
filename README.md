@@ -1,16 +1,44 @@
 # Image Preprocessing API
 
 レシート画像や書類画像を、OCRなどの後続処理で扱いやすい形に変換するための画像前処理APIです。
-画像をアップロードすると、グレースケール化・二値化・保存・プレビュー・ダウンロードまでをFastAPI上で実行できます。
+画像をアップロードすると、グレースケール化・二値化・保存・プレビュー・ダウンロードまでをFastAPI上で実行できま
+す。
 
 ## 作成背景
+レシート画像や書類画像をOCRなどで扱う場合、撮影環境や画像の明るさによって文字が読み取りにくくなることがありま
+す。
+そこで、画像をアップロードすると、グレースケール化や二値化といった基本的な前処理を行い、後続処理で扱いやすい画像
+として保存できるAPIを作成しました。
+このアプリでは、FastAPIによる画像アップロード、OpenCVによる画像処理、処理済み画像の保存、プレビュー、ダウンロ
+ード、JSONレスポンス返却までを実装しています。
+ポートフォリオとして、画像処理そのものだけでなく、Web APIとして入力チェック・レスポンス設計・テストまで意識して
+作成しました。
 
+## 開発方針
+
+このアプリは、AIツールを設計相談・実装補助・エラー調査・README整理の補助として活用しながら開発しました。
+ただし、生成されたコードをそのまま使うのではなく、FastAPIによる画像アップロード処理、OpenCVによるグレースケール化・二値化、レスポンス設計、テスト内容を確認し、自分で動作検証しながら実装を進めました。
+
+DB・認証・フロントエンドはあえて追加せず、画像アップロード、画像処理、ファイル保存、レスポンス設計、テストに絞って実装しています。
+機能を増やしすぎるよりも、APIとしての基本処理を理解し、面接で説明できる構成にすることを重視しました。
+
+## デモイメージ
+
+<img width="1280" height="720" alt="Image" src="https://github.com/user-attachments/assets/c32dc8cc-8911-42d4-af7c-608727fae090" />
+
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/cb533d78-9812-417e-8d76-e91ba74fbd22" width="31%"></td>
+    <td><img src="https://github.com/user-attachments/assets/caefe977-21a3-4876-a883-8792a3d3663e" width="31%"></td>
+    <td><img src="https://github.com/user-attachments/assets/05de373f-796d-4970-bac3-09eaf35a0eb3" width="31%"></td>
+  </tr>
+</table>
 
 ## 使用技術と選定理由
 
 | 分類 | 技術 | 採用理由 |
 |---|---|---|
-| 言語 | Python | 画像処理・API開発のライブラリが豊富で、学習中のバックエンド技術と相性が良いため |
+| 言語 | Python | 高性能な画像処理ライブラリ（OpenCV）の充実度と、高速なAPI開発を両立させるため |
 | API | FastAPI | Swagger UIが自動生成され、APIの動作確認や仕様確認がしやすいため |
 | レスポンス定義 | Pydantic | APIレスポンスの型を定義し、Swagger UI上でレスポンス仕様を分かりやすく表示するため |
 | 画像処理 | OpenCV | グレースケール化・二値化などの基本的な画像前処理を実装しやすいため |
@@ -26,27 +54,22 @@
 | GET | `/preview/{filename}` | 処理済み画像をブラウザで表示する |
 | GET | `/download/{filename}` | 処理済み画像をダウンロードする |
 
-## デモイメージ
-
-
-
-<table>
-  <tr>
-    <td><img src="<img width="640" height="480" alt="Image" src="https://github.com/user-attachments/assets/cb533d78-9812-417e-8d76-e91ba74fbd22" />" width="300"></td>
-    <td><img src="<img width="640" height="480" alt="Image" src="https://github.com/user-attachments/assets/caefe977-21a3-4876-a883-8792a3d3663e" />" width="300"></td>
-    <td><img src="<img width="640" height="480" alt="Image" src="https://github.com/user-attachments/assets/05de373f-796d-4970-bac3-09eaf35a0eb3" />" width="300"></td>
-  </tr>
-</table>
-
 ## セットアップ方法
 
-```bash
-git clone https://github.com//image-preprocessing-api.git（後ほど修正）
+```
+#クローン作製
+git clone https://github.com/jomoto-dev/jomoto-portfolio-Image-preprocessing.git
 cd image-preprocessing-api
 
+#仮想環境の作成
 python -m venv .venv
-.venv\Scripts\activate
 
+# Windows
+.venv\Scripts\activate
+# Mac/Linux
+source .venv/bin/activate
+
+# インストール
 python -m pip install -r requirements.txt
 ```
 
@@ -59,7 +82,11 @@ python -m uvicorn main:app --reload
 <http://127.0.0.1:8000/docs>
 
 ## 使い方
-
+1.アプリを起動し、ブラウザで<http://127.0.0.1:8000/docs>にアクセスする
+2.Swagger UIから`POST /process-image`を開く
+3.`Try it out`をクリックし、処理したい画像を選択する
+4.`Execute`を押すと画像が処理される
+5.`Response body`の`results`内にある`preview_url`から処理済み画像を確認したり、`download_url`から画像をダウンロードしたりできる
 
 ## 実装した機能
 
@@ -73,38 +100,34 @@ python -m uvicorn main:app --reload
 
 ## 各機能の仕様紹介
 
-・画像アップロード
+### 画像アップロード
 
-- 入力対応形式: jpg / jpeg / png / gif
-- 最大ファイルサイズ: 5MB
-- 対応していない形式、5MBを超えるファイル、空ファイルをアップロードした場合は400エラーになります。
+- `POST /process-image` から画像をアップロードできます。  
+- 対応形式は jpg / jpeg / png / gif、最大ファイルサイズは5MBです。  
 - GIFは先頭フレームのみ処理します。アニメーションGIFの全フレーム処理は行いません。
-<img width="1485" height="668" alt="Image" src="https://github.com/user-attachments/assets/cfadb33a-f7c9-4bc4-ae6b-d797f217cee6" />
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/cfadb33a-f7c9-4bc4-ae6b-d797f217cee6" />
 
-・処理モード指定
+### 処理モード指定
 
-`/process-image` では、画像ファイルと一緒に `mode` を指定できます。
-
+プルダウンから選択することで、`mode`による実行したい前処理の指定ができます。
 - `grayscale`: グレースケール化した画像を保存します。
 - `binary`: グレースケール化した後、二値化した画像を保存します。
 - `both`: グレースケール画像と二値化画像の両方を保存します。
 
-`mode` を指定しない場合は、`binary` として処理されます。
-Swagger UI の `/process-image` では、`mode` をプルダウンから選択して試せます。
+（`mode` を指定しない場合は、`binary` として処理されます。）
 
-・保存形式指定
+### 保存形式指定
 
-`/process-image` では、`output_format` で保存形式を指定できます。
+プルダウンから選択することで、`output_format`による保存形式の指定ができます。
 
 - `png`: png形式で保存します。
 - `jpg`: jpg形式で保存します。
 
-`output_format` を指定しない場合は、`png` として保存されます。
-Swagger UI の `/process-image` では、`output_format` をプルダウンから選択して試せます。
-GIFをアップロードした場合も、出力は `png` または `jpg` で保存されます。GIF形式のまま保存はしません。
-<img width="1486" height="668" alt="Image" src="https://github.com/user-attachments/assets/0b92c1bf-4af7-475c-aaee-a479cbf3e087" />
+（`output_format` を指定しない場合は、`png` として保存されます  。）
+（GIFをアップロードした場合も、出力は `png` または `jpg` で保存されます。）
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/0b92c1bf-4af7-475c-aaee-a479cbf3e087" />
 
-・処理済み画像のダウンロード
+### 処理済み画像のダウンロード
 
 処理済み画像は、`GET /download/{filename}` でダウンロードできます。
 
@@ -117,15 +140,9 @@ GET /download/processed_binary_xxxxx.png
 ```
 
 `/process-image` の `results` 内には `download_url` も含まれるため、そのURLから直接ダウンロードすることもできます。
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/0013fd7b-e91b-4229-9f18-9821c341a818" />
 
-ダウンロードできるのは `output` フォルダ内のファイルのみです。
-存在しないファイル名や、`output` フォルダ外にアクセスしようとする指定は404エラーになります。
-
-`/preview/{filename}` はブラウザで画像を表示するためのAPIです。
-`/download/{filename}` は画像をファイルとしてダウンロードするためのAPIです。
-<img width="1008" height="348" alt="Image" src="https://github.com/user-attachments/assets/0013fd7b-e91b-4229-9f18-9821c341a818" />
-
-・処理済み画像のプレビュー
+### 処理済み画像のプレビュー
 
 処理済み画像は、`GET /preview/{filename}` でブラウザ上に表示できます。
 
@@ -136,16 +153,40 @@ GET /download/processed_binary_xxxxx.png
 ```text
 GET /preview/processed_binary_xxxxx.png
 ```
-
-プレビューできるのは `output` フォルダ内の png / jpg / jpeg 画像のみです。
-存在しないファイル名や、`output` フォルダ外にアクセスしようとする指定は404エラーになります。
 <img width="1118" height="518" alt="Image" src="https://github.com/user-attachments/assets/345e4c70-f748-42ca-ae96-dc91a40a7d77" />
 
-## レスポンスに含まれる情報
+## API仕様
+
+### エンドポイント一覧
+
+| メソッド | エンドポイント | 内容 |
+|---|---|---|
+| GET | `/` | APIの起動確認 |
+| POST | `/process-image` | 画像をアップロードして前処理を実行 |
+| GET | `/preview/{filename}` | 処理済み画像をブラウザで表示 |
+| GET | `/download/{filename}` | 処理済み画像をダウンロード |
+
+### POST /process-image
+
+#### 入力
+
+| パラメータ | 種類 | 必須 | 説明 |
+|---|---|---|---|
+| `file` | file | 必須 | アップロードする画像ファイル |
+| `mode` | form | 任意 | `grayscale` / `binary` / `both` から選択。省略時は `binary` |
+| `output_format` | form | 任意 | `png` / `jpg` から選択。省略時は `png` |
+
+#### レスポンス
 
 `/process-image` のレスポンスでは、処理結果を常に `results` 配列で返します。
-`mode` が `grayscale` または `binary` の場合、`results` は1件です。
-`mode` が `both` の場合、`results` は2件です。
+
+| フィールド | 説明 |
+|---|---|
+| `message` | 処理結果メッセージ |
+| `mode` | 実行した処理モード |
+| `output_format` | 保存形式 |
+| `steps` | 実行した処理ステップ |
+| `results` | 処理済み画像の情報配列 |
 
 `results` の各要素には以下の情報が含まれます。
 
@@ -157,7 +198,7 @@ GET /preview/processed_binary_xxxxx.png
 | `preview_url` | ブラウザ表示用URL |
 | `download_url` | ダウンロード用URL |
 
-レスポンス例:
+#### レスポンス例
 
 ```json
 {
@@ -181,8 +222,17 @@ GET /preview/processed_binary_xxxxx.png
   ]
 }
 ```
+### 主なエラーコード
+| ステータスコード | 発生条件                             |
+| -------- | -------------------------------- |
+| 400      | 非対応形式のファイルをアップロードした場合            |
+| 400      | 空ファイルをアップロードした場合                 |
+| 400      | 5MBを超えるファイルをアップロードした場合           |
+| 404      | 存在しない処理済み画像をプレビュー・ダウンロードしようとした場合 |
 
-## フォルダ構成
+
+
+## ディレクトリ構成
 
 ```text
 image-preprocessing-api/
@@ -193,26 +243,68 @@ image-preprocessing-api/
 └─ tests/
    └─ test_main.py
 ```
-
-## API仕様
-
+* 各ファイルの関係性を表した図
+<img width="1491" height="1055" alt="Image" src="https://github.com/user-attachments/assets/102cf2e6-502a-40d2-92a0-385d93d2e30c" />
 
 ## テスト実行方法
 
 以下のコマンドでテストを実行できます。
 
-```powershell
+```
 python -m pytest
 
 ```
 
 ## 実装時に工夫した点
 
+- mode と output_format を選択式にし、Swagger UI上で試しやすい設計にしました。
+- results 配列でレスポンス形式を統一し、処理モードに関係なく同じ構造で結果を扱えるようにしました。
+- Pydantic response model を追加し、Swagger UI上でレスポンス仕様が分かりやすく表示されるようにしました。
+- アップロード可能な拡張子とファイルサイズを制限し、不正な入力に対して400エラーを返すようにしました。
+- output フォルダ外のファイルにアクセスされないよう、保存済み画像の取得時に安全なパスチェックを行っています。
+- pytestを使い、起動確認・画像アップロード・レスポンス内容・不正ファイル形式の基本テストを追加しました。
+
+## このプロジェクトで学んだこと
+
+- FastAPIで画像アップロードAPIを作成する方法
+- OpenCVで画像をグレースケール化・二値化する方法
+- multipart/form-data によるファイルアップロードの扱い
+- JSONレスポンスの設計
+- Pydantic response model によるAPI仕様の明確化
+- pytestによるAPIテストの基本
+- GitHub公開を意識したREADMEの整理
+
 ## 現時点でできること
+
+- jpg / jpeg / png / gif 画像をアップロードできます。
+- アップロード画像をグレースケール化できます。
+- アップロード画像を二値化できます。
+- グレースケール画像と二値化画像の両方を保存できます。
+- 保存形式を png / jpg から選択できます。
+- 処理済み画像をブラウザでプレビューできます。
+- 処理済み画像をダウンロードできます。
+- Swagger UIからAPIを操作できます。
+- pytestで基本的なAPIテストを実行できます。
 
 ## 現時点でできないこと
 
+- OCRによる文字認識は未実装です。
+- 画像処理のしきい値は固定値であり、画像ごとの自動調整には対応していません。
+- 処理履歴のDB保存には対応していません。
+- ユーザー認証やログイン機能はありません。
+- クラウド環境へのデプロイは行っていません。
+- アニメーションGIFの全フレーム処理には対応していません。GIFは先頭フレームのみ処理します。
+
 ## 今後の拡張案
-・一意なファイル名生成（UUIDなど）の実装
-・クラウドストレージ（AWS S3等）への保存
-・メタデータのDB管理への移行
+
+- 一意なファイル名生成（UUIDなど）の実装
+- クラウドストレージ（AWS S3等）への保存
+- メタデータのDB管理への移行
+
+## 注意事項
+
+- このアプリはローカル実行を前提としています。
+- アップロードされた画像は `output` フォルダに保存されます。
+- `output` フォルダ内の処理済み画像はGit管理対象外にしています。
+- GIF画像は先頭フレームのみ処理します。
+- OCR機能は未実装です。
