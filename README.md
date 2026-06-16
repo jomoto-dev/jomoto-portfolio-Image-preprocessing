@@ -28,9 +28,9 @@ DB・認証・フロントエンドはあえて追加せず、画像アップロ
 
 <table>
   <tr>
-    <td><img src="https://github.com/user-attachments/assets/cb533d78-9812-417e-8d76-e91ba74fbd22" width="31%"></td>
-    <td><img src="https://github.com/user-attachments/assets/caefe977-21a3-4876-a883-8792a3d3663e" width="31%"></td>
-    <td><img src="https://github.com/user-attachments/assets/05de373f-796d-4970-bac3-09eaf35a0eb3" width="31%"></td>
+    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/fe71f917-0c67-4d4a-80ff-3fd466cc12b0" /></td>
+    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/5466d266-e97b-4a56-b164-308c412507f4" /></td>
+    <td><img width="427" alt="Image" src="https://github.com/user-attachments/assets/909b7b48-0ac2-460b-bf91-a77e6356e943" /></td>
   </tr>
 </table>
 
