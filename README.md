@@ -39,6 +39,14 @@ python -m pip install -r requirements.txt
 ### 4.アプリ起動
 python -m uvicorn main:app --reload
 
+## テスト実行方法
+
+以下のコマンドでテストを実行できます。
+
+```powershell
+python -m pytest
+```
+
 ## 主な機能
 
 - 画像アップロード
@@ -147,5 +155,7 @@ image-preprocessing-api/
 ├─ main.py
 ├─ requirements.txt
 ├─ README.md
-└─ output/
+├─ output/
+└─ tests/
+   └─ test_main.py
 ```
