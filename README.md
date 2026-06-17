@@ -5,14 +5,8 @@
 す。
 
 ## 作成背景
-レシート画像や書類画像をOCRなどで扱う場合、撮影環境や画像の明るさによって文字が読み取りにくくなることがありま
-す。
-そこで、画像をアップロードすると、グレースケール化や二値化といった基本的な前処理を行い、後続処理で扱いやすい画像
-として保存できるAPIを作成しました。
-このアプリでは、FastAPIによる画像アップロード、OpenCVによる画像処理、処理済み画像の保存、プレビュー、ダウンロ
-ード、JSONレスポンス返却までを実装しています。
-ポートフォリオとして、画像処理そのものだけでなく、Web APIとして入力チェック・レスポンス設計・テストまで意識して
-作成しました。
+pythonの実務的な使用場面のうち、画像認識機能の作成に焦点を当て、レシート画像や書類画像をOCRなどで扱う際に必要となる、グレースケール化や二値化といった基本的な前処理を行うAPIを作成しました。
+ポートフォリオとして、画像処理そのものだけでなく、Web APIとして入力チェック・レスポンス設計・テストまで意識して作成しました。
 
 ## 開発方針
 
@@ -28,9 +22,9 @@ DB・認証・フロントエンドはあえて追加せず、画像アップロ
 
 <table>
   <tr>
-    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/fe71f917-0c67-4d4a-80ff-3fd466cc12b0" /></td>
-    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/5466d266-e97b-4a56-b164-308c412507f4" /></td>
-    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/909b7b48-0ac2-460b-bf91-a77e6356e943" /></td>
+    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/fe71f917-0c67-4d4a-80ff-3fd466cc12b0" />処理前</td>
+    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/5466d266-e97b-4a56-b164-308c412507f4" />グレースケール</td>
+    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/909b7b48-0ac2-460b-bf91-a77e6356e943" />二値</td>
   </tr>
 </table>
 
@@ -78,15 +72,15 @@ python -m pip install -r requirements.txt
 python -m uvicorn main:app --reload
 ```
 
-起動後のアクセス
+起動後のアクセス<br>
 <http://127.0.0.1:8000/docs>
 
 ## 使い方
-1.アプリを起動し、ブラウザで<http://127.0.0.1:8000/docs>にアクセスする
-2.Swagger UIから`POST /process-image`を開く
-3.`Try it out`をクリックし、処理したい画像を選択する
-4.`Execute`を押すと画像が処理される
-5.`Response body`の`results`内にある`preview_url`から処理済み画像を確認したり、`download_url`から画像をダウンロードしたりできる
+1. アプリを起動し、ブラウザで<http://127.0.0.1:8000/docs>にアクセスする
+2. Swagger UIから`POST /process-image`を開く
+3. `Try it out`をクリックし、処理したい画像を選択する
+4. `Execute`を押すと画像が処理される
+5. `Response body`の`results`内にある`preview_url`から処理済み画像を確認したり、`download_url`から画像をダウンロードしたりできる
 
 ## 実装した機能
 
@@ -252,7 +246,11 @@ image-preprocessing-api/
 
 ```
 python -m pytest
+```
+期待される結果:
 
+```text
+xx passed
 ```
 
 ## 実装時に工夫した点
