@@ -123,7 +123,7 @@ python -m uvicorn main:app --reload
 
 ### 処理済み画像のダウンロード
 
-処理済み画像は、`GET /download/{filename}` でダウンロードできます。
+処理済み画像は、`GET /download/{filename}` でダウンロードできます。<br>
 `/process-image` の `results` 内には `download_url` も含まれるため、そのURLから直接ダウンロードすることもできます。<br>
 例:
 
@@ -136,8 +136,7 @@ GET http://127.0.0.1:8000/download/processed_binary_xxxxx.png
 
 ### 処理済み画像のプレビュー
 
-処理済み画像は、`GET /preview/{filename}` でブラウザ上に表示できます。
-
+処理済み画像は、`GET /preview/{filename}` でブラウザ上に表示できます。<br>
 レスポンスの `results` 内にある `preview_url` を使うと、処理済み画像をブラウザでも確認できます。<br>
 例:
 
