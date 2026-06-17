@@ -1,12 +1,12 @@
 # Image Preprocessing API
 
 レシート画像や書類画像を、OCRなどの後続処理で扱いやすい形に変換するための画像前処理APIです。
-画像をアップロードすると、グレースケール化・二値化・保存・プレビュー・ダウンロードまでをFastAPI上で実行できま
-す。
+画像をアップロードすると、グレースケール化・二値化・保存・プレビュー・ダウンロードまでをFastAPI上で実行できます。
 
 ## 作成背景
-pythonの実務的な使用場面のうち、画像認識機能の作成に焦点を当て、レシート画像や書類画像をOCRなどで扱う際に必要となる、グレースケール化や二値化といった基本的な前処理を行うAPIを作成しました。
-ポートフォリオとして、画像処理そのものだけでなく、Web APIとして入力チェック・レスポンス設計・テストまで意識して作成しました。
+
+Pythonを用いた画像認識・OCR関連の実務を想定し、グレースケール化や二値化といった基本的な前処理を行うAPIを作成しました。
+また、画像処理だけでなく、Web APIとしての入力チェック、レスポンス設計、Pydanticによるレスポンス定義、pytestによる基本的なテストまで意識して実装しました。
 
 ## 開発方針
 
@@ -103,7 +103,7 @@ python -m uvicorn main:app --reload
 
 ### 処理モード指定
 
-プルダウンから選択することで、`mode`による実行したい前処理の指定ができます。
+プルダウンから選択することで、`mode`で前処理の指定ができます。
 - `grayscale`: グレースケール化した画像を保存します。
 - `binary`: グレースケール化した後、二値化した画像を保存します。
 - `both`: グレースケール画像と二値化画像の両方を保存します。
@@ -112,25 +112,24 @@ python -m uvicorn main:app --reload
 
 ### 保存形式指定
 
-プルダウンから選択することで、`output_format`による保存形式の指定ができます。
+プルダウンから選択することで、`output_format`で保存形式の指定ができます。
 
 - `png`: png形式で保存します。
 - `jpg`: jpg形式で保存します。
 
-（`output_format` を指定しない場合は、`png` として保存されます  。）
+（`output_format` を指定しない場合は、`png` として保存されます。）<br>
 （GIFをアップロードした場合も、出力は `png` または `jpg` で保存されます。）
 <img width="800" alt="Image" src="https://github.com/user-attachments/assets/0b92c1bf-4af7-475c-aaee-a479cbf3e087" />
 
 ### 処理済み画像のダウンロード
 
 処理済み画像は、`GET /download/{filename}` でダウンロードできます。
-
 レスポンスの `results` 内にある `filename` をそのまま `/download/{filename}` に指定して使えます。
-
 例:
 
 ```text
-GET /download/processed_binary_xxxxx.png
+GET http://127.0.0.1:8000/download/processed_binary_xxxxx.png
+↑APIのresponseに表示されているURLをブラウザに入力する
 ```
 
 `/process-image` の `results` 内には `download_url` も含まれるため、そのURLから直接ダウンロードすることもできます。
@@ -140,14 +139,15 @@ GET /download/processed_binary_xxxxx.png
 
 処理済み画像は、`GET /preview/{filename}` でブラウザ上に表示できます。
 
-レスポンスの `results` 内にある `preview_url` を使うと、処理済み画像をそのままブラウザで確認できます。
-
+レスポンスの `results` 内にある `preview_url` を使うと、処理済み画像をブラウザでも確認できます。
 例:
 
 ```text
-GET /preview/processed_binary_xxxxx.png
+GET http://127.0.0.1:8000/preview/processed_binary_xxxxx.png
+↑APIのresponseに表示されているURLをブラウザに入力する
 ```
-<img width="1118" height="518" alt="Image" src="https://github.com/user-attachments/assets/345e4c70-f748-42ca-ae96-dc91a40a7d77" />
+
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/345e4c70-f748-42ca-ae96-dc91a40a7d77" />
 
 ## API仕様
 
@@ -238,7 +238,7 @@ image-preprocessing-api/
    └─ test_main.py
 ```
 * 各ファイルの関係性を表した図
-<img width="1491" height="1055" alt="Image" src="https://github.com/user-attachments/assets/102cf2e6-502a-40d2-92a0-385d93d2e30c" />
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/102cf2e6-502a-40d2-92a0-385d93d2e30c" />
 
 ## テスト実行方法
 
@@ -272,18 +272,6 @@ xx passed
 - pytestによるAPIテストの基本
 - GitHub公開を意識したREADMEの整理
 
-## 現時点でできること
-
-- jpg / jpeg / png / gif 画像をアップロードできます。
-- アップロード画像をグレースケール化できます。
-- アップロード画像を二値化できます。
-- グレースケール画像と二値化画像の両方を保存できます。
-- 保存形式を png / jpg から選択できます。
-- 処理済み画像をブラウザでプレビューできます。
-- 処理済み画像をダウンロードできます。
-- Swagger UIからAPIを操作できます。
-- pytestで基本的なAPIテストを実行できます。
-
 ## 現時点でできないこと
 
 - OCRによる文字認識は未実装です。
@@ -306,3 +294,8 @@ xx passed
 - `output` フォルダ内の処理済み画像はGit管理対象外にしています。
 - GIF画像は先頭フレームのみ処理します。
 - OCR機能は未実装です。
+
+## ライセンス
+
+このプロジェクトはポートフォリオ用途で公開しています。  
+利用・改変の条件については、必要に応じて今後ライセンスを設定します。
