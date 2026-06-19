@@ -251,7 +251,7 @@ python -m pytest
 期待される結果:
 
 ```text
-xx passed
+4 passed
 ```
 
 ## 実装時に工夫した点
