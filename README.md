@@ -158,8 +158,30 @@ GET http://127.0.0.1:8000/preview/processed_binary_xxxxx.png
 |---|---|---|
 | GET | `/` | APIの起動確認 |
 | POST | `/process-image` | 画像をアップロードして前処理を実行 |
-| GET | `/preview/{filename}` | 処理済み画像をブラウザで表示 |
 | GET | `/download/{filename}` | 処理済み画像をダウンロード |
+| GET | `/preview/{filename}` | 処理済み画像をブラウザで表示 |
+
+### GET /
+
+#### 入力
+
+なし
+
+#### レスポンス
+
+APIが起動していることを確認するためのJSONを返します。
+
+| フィールド | 説明 |
+|---|---|
+| `message` | APIの起動状態を表すメッセージ |
+
+#### レスポンス例
+
+```json
+{
+  "message": "Image Preprocessing API is running"
+}
+```
 
 ### POST /process-image
 
@@ -217,6 +239,62 @@ GET http://127.0.0.1:8000/preview/processed_binary_xxxxx.png
   ]
 }
 ```
+
+### GET /download/{filename}
+
+#### 入力
+
+| パラメータ | 種類 | 必須 | 説明 |
+|---|---|---|---|
+| `filename` | path | 必須 | `POST /process-image` の `results[].filename` で返されたファイル名 |
+
+#### レスポンス
+
+成功時は、処理済み画像をダウンロード用のファイルとして返します。
+
+| 項目 | 内容 |
+|---|---|
+| ステータスコード | `200` |
+| レスポンス本文 | 画像ファイルのデータ |
+| Content-Type | `image/png` または `image/jpeg` |
+
+#### レスポンス例
+
+```text
+200 OK
+Content-Type: image/png
+Content-Disposition: attachment; filename="processed_binary_xxxxx.png"
+
+PNG画像データ
+```
+
+### GET /preview/{filename}
+
+#### 入力
+
+| パラメータ | 種類 | 必須 | 説明 |
+|---|---|---|---|
+| `filename` | path | 必須 | `POST /process-image` の `results[].filename` で返されたファイル名 |
+
+#### レスポンス
+
+成功時は、処理済み画像をブラウザ表示用のファイルとして返します。
+
+| 項目 | 内容 |
+|---|---|
+| ステータスコード | `200` |
+| レスポンス本文 | 画像ファイルのデータ |
+| Content-Type | `image/png` または `image/jpeg` |
+
+#### レスポンス例
+
+```text
+200 OK
+Content-Type: image/png
+
+PNG画像データ
+```
+
 ### 主なエラーコード
 | ステータスコード | 発生条件                             |
 | -------- | -------------------------------- |
