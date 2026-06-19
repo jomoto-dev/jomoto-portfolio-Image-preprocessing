@@ -132,8 +132,8 @@ python -m uvicorn main:app --reload
 GET http://127.0.0.1:8000/download/processed_binary_xxxxx.png
 ↑APIのresponseに表示されているURLをブラウザに入力する
 ```
-<img src="https://github.com/user-attachments/assets/1864ff7d-550c-442f-905e-a64bf639e8fe">
-<img src="https://github.com/user-attachments/assets/eb64fce2-d4db-4959-b383-49e05834b93e">
+<img width="800" src="https://github.com/user-attachments/assets/1864ff7d-550c-442f-905e-a64bf639e8fe">
+<img width="800" src="https://github.com/user-attachments/assets/eb64fce2-d4db-4959-b383-49e05834b93e">
 
 ### 処理済み画像のプレビュー
 
@@ -146,8 +146,8 @@ GET http://127.0.0.1:8000/preview/processed_binary_xxxxx.png
 ↑APIのresponseに表示されているURLをブラウザに入力する
 ```
 
-<img src="https://github.com/user-attachments/assets/06e9d8c0-cb57-4cd7-9696-490c319ffeb6">
-<img src="https://github.com/user-attachments/assets/eb64fce2-d4db-4959-b383-49e05834b93e">
+<img width="800" src="https://github.com/user-attachments/assets/06e9d8c0-cb57-4cd7-9696-490c319ffeb6">
+<img width="800" src="https://github.com/user-attachments/assets/eb64fce2-d4db-4959-b383-49e05834b93e">
 
 
 ## API仕様
