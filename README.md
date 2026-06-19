@@ -99,7 +99,7 @@ python -m uvicorn main:app --reload
 - `POST /process-image` から画像をアップロードできます。  
 - 対応形式は jpg / jpeg / png / gif、最大ファイルサイズは5MBです。  
 - GIFは先頭フレームのみ処理します。アニメーションGIFの全フレーム処理は行いません。
-<img width="800" alt="Image" src="https://github.com/user-attachments/assets/cfadb33a-f7c9-4bc4-ae6b-d797f217cee6" />
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/6f38e848-fb95-42d2-b962-4ff45892e073" />
 
 ### 処理モード指定
 
@@ -109,6 +109,7 @@ python -m uvicorn main:app --reload
 - `both`: グレースケール画像と二値化画像の両方を保存します。
 
 （`mode` を指定しない場合は、`binary` として処理されます。）
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/17d2290f-c3fc-4bff-b148-7a2ae8848623" />
 
 ### 保存形式指定
 
@@ -119,7 +120,7 @@ python -m uvicorn main:app --reload
 
 （`output_format` を指定しない場合は、`png` として保存されます。）<br>
 （GIFをアップロードした場合も、出力は `png` または `jpg` で保存されます。）
-<img width="800" alt="Image" src="https://github.com/user-attachments/assets/0b92c1bf-4af7-475c-aaee-a479cbf3e087" />
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/c77d50bd-aae4-42de-948c-d7bdd3274bb9" />
 
 ### 処理済み画像のダウンロード
 
@@ -131,8 +132,8 @@ python -m uvicorn main:app --reload
 GET http://127.0.0.1:8000/download/processed_binary_xxxxx.png
 ↑APIのresponseに表示されているURLをブラウザに入力する
 ```
-
-<img width="800" alt="Image" src="https://github.com/user-attachments/assets/0013fd7b-e91b-4229-9f18-9821c341a818" />
+<img src="https://github.com/user-attachments/assets/1864ff7d-550c-442f-905e-a64bf639e8fe">
+<img src="https://github.com/user-attachments/assets/eb64fce2-d4db-4959-b383-49e05834b93e">
 
 ### 処理済み画像のプレビュー
 
@@ -145,7 +146,9 @@ GET http://127.0.0.1:8000/preview/processed_binary_xxxxx.png
 ↑APIのresponseに表示されているURLをブラウザに入力する
 ```
 
-<img width="800" alt="Image" src="https://github.com/user-attachments/assets/345e4c70-f748-42ca-ae96-dc91a40a7d77" />
+<img src="https://github.com/user-attachments/assets/06e9d8c0-cb57-4cd7-9696-490c319ffeb6">
+<img src="https://github.com/user-attachments/assets/eb64fce2-d4db-4959-b383-49e05834b93e">
+
 
 ## API仕様
 
@@ -236,7 +239,7 @@ image-preprocessing-api/
    └─ test_main.py
 ```
 * 各ファイルの関係性を表した図
-<img width="800" alt="Image" src="https://github.com/user-attachments/assets/102cf2e6-502a-40d2-92a0-385d93d2e30c" />
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/c88dae8f-e8b3-4268-8bb3-ef64971033eb" />
 
 ## テスト実行方法
 
