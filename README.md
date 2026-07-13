@@ -133,8 +133,8 @@ GET http://127.0.0.1:8000/download/processed_binary_xxxxx.png
 ↑APIのresponseに表示されているURLをブラウザに入力する
 ```
 
-<img width="800" alt="Image" src="https://github.com/user-attachments/assets/f1846b0e-dbcd-46fd-a9dd-638056ce3250" />
 <img width="800" alt="Image" src="https://github.com/user-attachments/assets/7b8d8562-a9de-4556-af1d-3bbc35447163" />
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/f1846b0e-dbcd-46fd-a9dd-638056ce3250" />
 
 ### 処理済み画像のプレビュー
 
@@ -147,9 +147,8 @@ GET http://127.0.0.1:8000/preview/processed_binary_xxxxx.png
 ↑APIのresponseに表示されているURLをブラウザに入力する
 ```
 
-<img width="800" alt="Image" src="https://github.com/user-attachments/assets/c7b8580f-e1d9-4092-94c0-c91930bde556" />
 <img width="800" alt="Image" src="https://github.com/user-attachments/assets/7b8d8562-a9de-4556-af1d-3bbc35447163" />
-
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/f1846b0e-dbcd-46fd-a9dd-638056ce3250" />
 
 ## API仕様
 
