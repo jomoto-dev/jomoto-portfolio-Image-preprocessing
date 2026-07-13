@@ -18,13 +18,13 @@ DB・認証・フロントエンドはあえて追加せず、画像アップロ
 
 ## デモイメージ
 
-<img width="1280" height="720" alt="Image" src="https://github.com/user-attachments/assets/c0fc3fde-6696-440a-b6cf-35704420e953" />
+<img width="1280" height="720" alt="Image" src="https://github.com/user-attachments/assets/f468d3ea-a2a6-4561-ac33-49eb03c23e13" />
 
 <table>
   <tr>
-    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/fe71f917-0c67-4d4a-80ff-3fd466cc12b0" />処理前</td>
-    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/5466d266-e97b-4a56-b164-308c412507f4" />グレースケール</td>
-    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/909b7b48-0ac2-460b-bf91-a77e6356e943" />二値</td>
+    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/20581efc-5caf-4608-bd92-5562ec113d85" />処理前</td>
+    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/bae28c12-5361-4651-8366-c073833151be" />グレースケール</td>
+    <td><img width="45%" alt="Image" src="https://github.com/user-attachments/assets/57499649-a0be-4ce4-978e-3eb4d162d235" />二値</td>
   </tr>
 </table>
 
@@ -99,7 +99,7 @@ python -m uvicorn main:app --reload
 - `POST /process-image` から画像をアップロードできます。  
 - 対応形式は jpg / jpeg / png / gif、最大ファイルサイズは5MBです。  
 - GIFは先頭フレームのみ処理します。アニメーションGIFの全フレーム処理は行いません。
-<img width="800" alt="Image" src="https://github.com/user-attachments/assets/6f38e848-fb95-42d2-b962-4ff45892e073" />
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/edec0639-38c1-4b0b-a1a4-559491aa5d38" />
 
 ### 処理モード指定
 
@@ -109,7 +109,7 @@ python -m uvicorn main:app --reload
 - `both`: グレースケール画像と二値化画像の両方を保存します。
 
 （`mode` を指定しない場合は、`binary` として処理されます。）
-<img width="800" alt="Image" src="https://github.com/user-attachments/assets/17d2290f-c3fc-4bff-b148-7a2ae8848623" />
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/950c888c-9e7d-49c7-bc93-c2fa4c3000b5" />
 
 ### 保存形式指定
 
@@ -120,7 +120,7 @@ python -m uvicorn main:app --reload
 
 （`output_format` を指定しない場合は、`png` として保存されます。）<br>
 （GIFをアップロードした場合も、出力は `png` または `jpg` で保存されます。）
-<img width="800" alt="Image" src="https://github.com/user-attachments/assets/c77d50bd-aae4-42de-948c-d7bdd3274bb9" />
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/ec071dd4-2d8c-40d8-8572-792190b70e1c" />
 
 ### 処理済み画像のダウンロード
 
@@ -132,8 +132,9 @@ python -m uvicorn main:app --reload
 GET http://127.0.0.1:8000/download/processed_binary_xxxxx.png
 ↑APIのresponseに表示されているURLをブラウザに入力する
 ```
-<img width="800" src="https://github.com/user-attachments/assets/1864ff7d-550c-442f-905e-a64bf639e8fe">
-<img width="800" src="https://github.com/user-attachments/assets/eb64fce2-d4db-4959-b383-49e05834b93e">
+
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/f1846b0e-dbcd-46fd-a9dd-638056ce3250" />
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/7b8d8562-a9de-4556-af1d-3bbc35447163" />
 
 ### 処理済み画像のプレビュー
 
@@ -146,8 +147,8 @@ GET http://127.0.0.1:8000/preview/processed_binary_xxxxx.png
 ↑APIのresponseに表示されているURLをブラウザに入力する
 ```
 
-<img width="800" src="https://github.com/user-attachments/assets/06e9d8c0-cb57-4cd7-9696-490c319ffeb6">
-<img width="800" src="https://github.com/user-attachments/assets/eb64fce2-d4db-4959-b383-49e05834b93e">
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/c7b8580f-e1d9-4092-94c0-c91930bde556" />
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/7b8d8562-a9de-4556-af1d-3bbc35447163" />
 
 
 ## API仕様
@@ -317,7 +318,7 @@ image-preprocessing-api/
    └─ test_main.py
 ```
 * 各ファイルの関係性を表した図
-<img width="800" alt="Image" src="https://github.com/user-attachments/assets/c88dae8f-e8b3-4268-8bb3-ef64971033eb" />
+<img width="800" alt="Image" src="https://github.com/user-attachments/assets/8410a1f3-a8af-4d75-9db6-7db4b020a0e4" />
 
 ## テスト実行方法
 
